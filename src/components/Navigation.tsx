@@ -5,11 +5,15 @@ interface NavigationProps {
 
 const Navigation = ({ activeForm, setActiveForm }: NavigationProps) => {
   const navItems = [
-    { id: 'author', label: '👤 Add Author' },
-    { id: 'book', label: '📖 Add Book' },
-    { id: 'publisher', label: '🏢 Add Publisher' },
-    { id: 'staff', label: '👨‍💼 Add Staff' },
-    { id: 'issue', label: '📋 Issue Book' },
+    { id: "author", label: "👤 Add Author" },
+    { id: "book", label: "📖 Add Book" },
+    { id: "publisher", label: "🏢 Add Publisher" },
+    { id: "staff", label: "👨‍💼 Add Staff" },
+    { id: "reader", label: "👥 Add Reader" },
+    { id: "issue", label: "📋 Issue Book" },
+    { id: "return", label: "↩️ Return Book" },
+    { id: "books-view", label: "📚 View Books" },
+    { id: "issues-view", label: "📋 View Issues" },
   ];
 
   return (
@@ -19,7 +23,7 @@ const Navigation = ({ activeForm, setActiveForm }: NavigationProps) => {
           <button
             key={item.id}
             onClick={() => setActiveForm(item.id)}
-            className={`library-nav-item ${activeForm === item.id ? 'active' : ''}`}
+            className={`library-nav-item ${activeForm === item.id ? "active" : ""}`}
           >
             {item.label}
           </button>

@@ -1,10 +1,13 @@
 import { useState } from "react";
 import AlertMessage from "../AlertMessage";
 
-const AddPublisherForm = () => {
+const AddReaderForm = () => {
   const [formData, setFormData] = useState({
     name: "",
-    yearOfPublication: "",
+    email: "",
+    phone: "",
+    password: "",
+    address: "",
   });
   const [alert, setAlert] = useState<{
     type: "success" | "error" | null;
@@ -27,25 +30,31 @@ const AddPublisherForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/api/publisher", {
+      const response = await fetch("http://localhost:3000/api/reader", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          yearOfPublication: parseInt(formData.yearOfPublication),
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        setAlert({ type: "success", message: "Publisher added successfully!" });
-        setFormData({ name: "", yearOfPublication: "" });
+        setAlert({
+          type: "success",
+          message: "Reader registered successfully!",
+        });
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          password: "",
+          address: "",
+        });
       } else {
         const errorData = await response.json();
         setAlert({
           type: "error",
-          message: errorData.message || "Failed to add publisher",
+          message: errorData.message || "Failed to register reader",
         });
       }
     } catch (error) {
@@ -58,7 +67,7 @@ const AddPublisherForm = () => {
   return (
     <div className="library-card fade-in max-w-md mx-auto">
       <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
-        Add New Publisher
+        Register New Reader
       </h2>
 
       <AlertMessage
@@ -88,16 +97,70 @@ const AddPublisherForm = () => {
 
         <div>
           <label
-            htmlFor="yearOfPublication"
+            htmlFor="email"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Year of Publication
+            Email
           </label>
           <input
-            type="number"
-            id="yearOfPublication"
-            name="yearOfPublication"
-            value={formData.yearOfPublication}
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="library-input"
+            required
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Phone
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="library-input"
+            required
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            className="library-input"
+            required
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="address"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Address
+          </label>
+          <input
+            type="text"
+            id="address"
+            name="address"
+            value={formData.address}
             onChange={handleChange}
             className="library-input"
             required
@@ -109,11 +172,11 @@ const AddPublisherForm = () => {
           disabled={isLoading}
           className="library-btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Adding Publisher..." : "Add Publisher"}
+          {isLoading ? "Registering Reader..." : "Register Reader"}
         </button>
       </form>
     </div>
   );
 };
 
-export default AddPublisherForm;
+export default AddReaderForm;

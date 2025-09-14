@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useBooks } from "../../hooks/useBooks";
+import { useReaders } from "../../hooks/useReaders";
 import AlertMessage from "../AlertMessage";
 
-const AddPublisherForm = () => {
+const ReturnBookForm = () => {
   const [formData, setFormData] = useState({
-    name: "",
-    yearOfPublication: "",
+    reader_name: "",
+    book_name: "",
   });
   const [alert, setAlert] = useState<{
     type: "success" | "error" | null;
@@ -15,7 +17,12 @@ const AddPublisherForm = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { readers, isLoading: readersLoading } = useReaders();
+  const { books, isLoading: booksLoading } = useBooks();
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -27,25 +34,22 @@ const AddPublisherForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/api/publisher", {
-        method: "POST",
+      const response = await fetch("http://localhost:3000/api/bookissue", {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          yearOfPublication: parseInt(formData.yearOfPublication),
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        setAlert({ type: "success", message: "Publisher added successfully!" });
-        setFormData({ name: "", yearOfPublication: "" });
+        setAlert({ type: "success", message: "Book returned successfully!" });
+        setFormData({ reader_name: "", book_name: "" });
       } else {
         const errorData = await response.json();
         setAlert({
           type: "error",
-          message: errorData.message || "Failed to add publisher",
+          message: errorData.message || "Failed to return book",
         });
       }
     } catch (error) {
@@ -58,7 +62,7 @@ const AddPublisherForm = () => {
   return (
     <div className="library-card fade-in max-w-md mx-auto">
       <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
-        Add New Publisher
+        Return Book
       </h2>
 
       <AlertMessage
@@ -70,38 +74,52 @@ const AddPublisherForm = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
-            htmlFor="name"
+            htmlFor="reader_name"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Name
+            Select Reader
           </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
+          <select
+            id="reader_name"
+            name="reader_name"
+            value={formData.reader_name}
             onChange={handleChange}
             className="library-input"
             required
-          />
+            disabled={readersLoading}
+          >
+            <option value="">Select a reader</option>
+            {readers.map((reader) => (
+              <option key={reader._id} value={reader.name}>
+                {reader.name} ({reader.readerID}) - {reader.email}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
           <label
-            htmlFor="yearOfPublication"
+            htmlFor="book_name"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Year of Publication
+            Select Book
           </label>
-          <input
-            type="number"
-            id="yearOfPublication"
-            name="yearOfPublication"
-            value={formData.yearOfPublication}
+          <select
+            id="book_name"
+            name="book_name"
+            value={formData.book_name}
             onChange={handleChange}
             className="library-input"
             required
-          />
+            disabled={booksLoading}
+          >
+            <option value="">Select a book</option>
+            {books.map((book) => (
+              <option key={book._id} value={book.title}>
+                {book.title} by {book.author?.name || "Unknown"}
+              </option>
+            ))}
+          </select>
         </div>
 
         <button
@@ -109,11 +127,11 @@ const AddPublisherForm = () => {
           disabled={isLoading}
           className="library-btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Adding Publisher..." : "Add Publisher"}
+          {isLoading ? "Returning Book..." : "Return Book"}
         </button>
       </form>
     </div>
   );
 };
 
-export default AddPublisherForm;
+export default ReturnBookForm;

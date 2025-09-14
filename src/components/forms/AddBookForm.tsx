@@ -1,28 +1,38 @@
-import { useState } from 'react';
-import AlertMessage from '../AlertMessage';
+import { useState } from "react";
+import { useAuthors } from "../../hooks/useAuthors";
+import { usePublishers } from "../../hooks/usePublishers";
+import AlertMessage from "../AlertMessage";
 
 const AddBookForm = () => {
   const [formData, setFormData] = useState({
-    bookID: '',
-    title: '',
-    author: '',
-    publisher: '',
-    edition: '',
-    price: '',
+    title: "",
+    author: "",
+    publisher: "",
+    edition: "",
+    price: "",
     availability: true,
-    stock: '',
+    stock: "",
   });
-  const [alert, setAlert] = useState<{ type: 'success' | 'error' | null; message: string }>({
+  const [alert, setAlert] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({
     type: null,
-    message: '',
+    message: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+  const { authors, isLoading: authorsLoading } = useAuthors();
+  const { publishers, isLoading: publishersLoading } = usePublishers();
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
@@ -31,10 +41,10 @@ const AddBookForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/books', {
-        method: 'POST',
+      const response = await fetch("http://localhost:3000/api/book", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
@@ -44,23 +54,25 @@ const AddBookForm = () => {
       });
 
       if (response.ok) {
-        setAlert({ type: 'success', message: 'Book added successfully!' });
+        setAlert({ type: "success", message: "Book added successfully!" });
         setFormData({
-          bookID: '',
-          title: '',
-          author: '',
-          publisher: '',
-          edition: '',
-          price: '',
+          title: "",
+          author: "",
+          publisher: "",
+          edition: "",
+          price: "",
           availability: true,
-          stock: '',
+          stock: "",
         });
       } else {
         const errorData = await response.json();
-        setAlert({ type: 'error', message: errorData.message || 'Failed to add book' });
+        setAlert({
+          type: "error",
+          message: errorData.message || "Failed to add book",
+        });
       }
     } catch (error) {
-      setAlert({ type: 'error', message: 'Network error. Please try again.' });
+      setAlert({ type: "error", message: "Network error. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -68,32 +80,22 @@ const AddBookForm = () => {
 
   return (
     <div className="library-card fade-in max-w-md mx-auto">
-      <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">Add New Book</h2>
-      
+      <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
+        Add New Book
+      </h2>
+
       <AlertMessage
         type={alert.type}
         message={alert.message}
-        onClose={() => setAlert({ type: null, message: '' })}
+        onClose={() => setAlert({ type: null, message: "" })}
       />
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="bookID" className="block text-sm font-medium text-gray-700 mb-2">
-            Book ID
-          </label>
-          <input
-            type="text"
-            id="bookID"
-            name="bookID"
-            value={formData.bookID}
-            onChange={handleChange}
-            className="library-input"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="title"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Title
           </label>
           <input
@@ -108,37 +110,60 @@ const AddBookForm = () => {
         </div>
 
         <div>
-          <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-2">
-            Author (ObjectId)
+          <label
+            htmlFor="author"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Author
           </label>
-          <input
-            type="text"
+          <select
             id="author"
             name="author"
             value={formData.author}
             onChange={handleChange}
             className="library-input"
             required
-          />
+            disabled={authorsLoading}
+          >
+            <option value="">Select an author</option>
+            {authors.map((author) => (
+              <option key={author._id} value={author._id}>
+                {author.name} ({author.email})
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
-          <label htmlFor="publisher" className="block text-sm font-medium text-gray-700 mb-2">
-            Publisher (ObjectId)
+          <label
+            htmlFor="publisher"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Publisher
           </label>
-          <input
-            type="text"
+          <select
             id="publisher"
             name="publisher"
             value={formData.publisher}
             onChange={handleChange}
             className="library-input"
             required
-          />
+            disabled={publishersLoading}
+          >
+            <option value="">Select a publisher</option>
+            {publishers.map((publisher) => (
+              <option key={publisher._id} value={publisher._id}>
+                {publisher.name} ({publisher.yearOfPublication})
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
-          <label htmlFor="edition" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="edition"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Edition
           </label>
           <input
@@ -153,7 +178,10 @@ const AddBookForm = () => {
         </div>
 
         <div>
-          <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="price"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Price
           </label>
           <input
@@ -169,7 +197,10 @@ const AddBookForm = () => {
         </div>
 
         <div>
-          <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="stock"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Stock
           </label>
           <input
@@ -192,7 +223,10 @@ const AddBookForm = () => {
             onChange={handleChange}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
-          <label htmlFor="availability" className="ml-2 block text-sm text-gray-700">
+          <label
+            htmlFor="availability"
+            className="ml-2 block text-sm text-gray-700"
+          >
             Available
           </label>
         </div>
@@ -202,7 +236,7 @@ const AddBookForm = () => {
           disabled={isLoading}
           className="library-btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Adding Book...' : 'Add Book'}
+          {isLoading ? "Adding Book..." : "Add Book"}
         </button>
       </form>
     </div>
